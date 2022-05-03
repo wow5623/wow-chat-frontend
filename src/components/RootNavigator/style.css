@@ -1,0 +1,10 @@
+.fade-enter {
+    filter: blur(4px);
+    opacity: 0;
+}
+
+.fade-enter.fade-enter-active {
+    filter: blur(0px);
+    opacity: 1;
+    transition: opacity 500ms ease-in, filter 500ms ease-in;
+}
