@@ -1,5 +1,7 @@
 import {Api} from '../../Api';
 import {TLoginBody, TLoginResponse, TRegisterBody, TRegisterResponse, TValidateTokenResponse} from './types';
+import {serviceMethodWithAuth} from '../../decorators/serviceMethodWithAuth';
+import {TServiceRequest} from '../../types';
 
 export class AuthService extends Api {
 
@@ -17,8 +19,11 @@ export class AuthService extends Api {
         })
     }
 
-    async validateToken(accessToken: string): Promise<TValidateTokenResponse> {
-        return this.read<TRegisterResponse>(this.getServiceEndpoint(this.serviceUrl, 'validateToken/', accessToken))
+    @serviceMethodWithAuth
+    async validateToken(props: TServiceRequest): Promise<TValidateTokenResponse> {
+        return this.read<TRegisterResponse>(this.getServiceEndpoint(this.serviceUrl, 'validateToken/'), {
+            headers: props.headers
+        })
     }
 
 }

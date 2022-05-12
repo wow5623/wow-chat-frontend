@@ -90,10 +90,9 @@ persist({
     key: 'accessToken'
 })
 
-sample({
-    source: $accessToken,
-    clock: validateTokenEvent,
-    target: validateTokenFx
+forward({
+    from: validateTokenEvent,
+    to: validateTokenFx
 })
 
 sample({

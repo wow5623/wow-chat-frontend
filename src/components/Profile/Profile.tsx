@@ -3,9 +3,12 @@ import {useStore} from 'effector-react';
 import {$isAuth, $userInfo, logoutUserEvent} from '../../store/models/auth';
 import {Navigate} from 'react-router-dom';
 import {useUserNameFontSize} from './hooks/useUserNameFontSize';
-import {useState} from 'react';
+import React, {useState} from 'react';
 import {EProfileMode} from './types';
 import {Button} from 'antd';
+import {ScreenWrapper} from '../ScreenWrapper/ScreenWrapper';
+import {UsersSearch} from '../UsersSearch/UsersSearch';
+import {Helmet} from 'react-helmet';
 
 export const Profile = () => {
 
@@ -30,33 +33,45 @@ export const Profile = () => {
     }
 
     return (
-        <Styled.Wrapper>
-            <Styled.ContentWrapper>
-                <Styled.Content>
-                    {
-                        profileMode === EProfileMode.Info && (
-                            <>
-                                <Styled.UserName fontSize={userNameFontSize}>
-                                    {userInfo.name}
-                                </Styled.UserName>
-                                <Styled.UserEmail>
-                                    {userInfo.email}
-                                </Styled.UserEmail>
-                            </>
-                        )
-                    }
-                    {
-                        profileMode === EProfileMode.Settings && (
-                            <>
-                                <Button type="primary" danger size={'large'} onClick={logoutUser}>
-                                    Выйти из аккаунта
-                                </Button>
-                            </>
-                        )
-                    }
-                </Styled.Content>
-                <Styled.ProfileModeButton profileMode={profileMode} onClick={handleSwitchProfileMode}/>
-            </Styled.ContentWrapper>
-        </Styled.Wrapper>
+        <ScreenWrapper>
+            <Helmet>
+                <title>
+                    Профиль
+                </title>
+            </Helmet>
+            <Styled.Outer>
+                <Styled.SearchWrapper>
+                    <UsersSearch/>
+                </Styled.SearchWrapper>
+                <Styled.Wrapper>
+                    <Styled.ContentWrapper>
+                        <Styled.Content>
+                            {
+                                profileMode === EProfileMode.Info && (
+                                    <>
+                                        <Styled.UserName fontSize={userNameFontSize}>
+                                            {userInfo.name}
+                                        </Styled.UserName>
+                                        <Styled.UserEmail>
+                                            {userInfo.email}
+                                        </Styled.UserEmail>
+                                    </>
+                                )
+                            }
+                            {
+                                profileMode === EProfileMode.Settings && (
+                                    <>
+                                        <Button type="primary" danger size={'large'} onClick={logoutUser}>
+                                            Выйти из аккаунта
+                                        </Button>
+                                    </>
+                                )
+                            }
+                        </Styled.Content>
+                        <Styled.ProfileModeButton profileMode={profileMode} onClick={handleSwitchProfileMode}/>
+                    </Styled.ContentWrapper>
+                </Styled.Wrapper>
+            </Styled.Outer>
+        </ScreenWrapper>
     )
 }

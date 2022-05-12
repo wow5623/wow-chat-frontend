@@ -1,5 +1,5 @@
 import axios, {AxiosInstance} from 'axios';
-import {TApiMethodMutableConfig, TApiMethodUnMutableConfig} from './types';
+import {TApiMethodMutableConfig, TApiMethodUnMutableConfig, TServiceRequest} from './types';
 import {apiMethod} from './decorators/apiMethod';
 
 export class Api {
@@ -15,30 +15,34 @@ export class Api {
     }
 
     @apiMethod
-    protected async read<R>(url: string, config?: TApiMethodUnMutableConfig): Promise<R> {
+    protected async read<R>(url: string, config?: TServiceRequest & TApiMethodUnMutableConfig): Promise<R> {
         return await this.apiInstance.get(url, {
             params: config?.queryParams ?? {},
+            headers: config?.headers ?? {},
         })
     }
 
     @apiMethod
-    protected async create<R>(url: string, config?: TApiMethodMutableConfig): Promise<R> {
+    protected async create<R>(url: string, config?: TServiceRequest & TApiMethodMutableConfig): Promise<R> {
         return await this.apiInstance.post(url, config?.body ?? {}, {
             params: config?.queryParams,
+            headers: config?.headers ?? {},
         })
     }
 
     @apiMethod
-    protected async update<R>(url: string, config?: TApiMethodMutableConfig): Promise<R> {
+    protected async update<R>(url: string, config?: TServiceRequest & TApiMethodMutableConfig): Promise<R> {
         return await this.apiInstance.put(url, config?.body ?? {}, {
             params: config?.queryParams,
+            headers: config?.headers ?? {},
         })
     }
 
     @apiMethod
-    protected async delete<R>(url: string, config?: TApiMethodUnMutableConfig): Promise<R> {
+    protected async delete<R>(url: string, config?: TServiceRequest & TApiMethodUnMutableConfig): Promise<R> {
         return await this.apiInstance.delete(url, {
             params: config?.queryParams ?? {},
+            headers: config?.headers ?? {},
         })
     }
 

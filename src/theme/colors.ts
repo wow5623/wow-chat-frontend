@@ -1,6 +1,8 @@
 export const Colors = {
     primary: '#8468de',
+    softDark: '#483a6f',
     dark: '#382e59',
+    extraDark: '#2c224b',
     shadow: 'rgb(38,27,74,0.4)',
     secondary: 'white',
     dialog: {

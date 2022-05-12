@@ -8,6 +8,7 @@ import {useStore} from 'effector-react';
 import * as Yup from 'yup';
 import {useFormItemValidateStatusCallback} from '../../hooks/useFormItemValidateStatus';
 import {CommonStyled} from 'src/components/common/components-styled';
+import {Helmet} from 'react-helmet';
 
 
 const REGISTER_INITIAL_VALUES = {
@@ -31,16 +32,15 @@ export const Register: React.FC = () => {
 
     return (
         <AuthStyled.FormContentWrapper>
+            <Helmet>
+                <title>
+                    Регистрация
+                </title>
+            </Helmet>
             <Formik
                 initialValues={REGISTER_INITIAL_VALUES}
                 validationSchema={REGISTER_VALIDATION_SCHEMA}
                 onSubmit={(values, actions) => {
-                    console.group('User credentials')
-                    console.log('Email', values.email);
-                    console.log('Password', values.password);
-                    console.log('Repeat password', values.repeatPassword);
-                    console.log('Name', values.name);
-                    console.groupEnd()
 
                     registerUserEvent({
                         email: values.email,
@@ -139,7 +139,7 @@ export const Register: React.FC = () => {
                                     loading={registerPending}
                                     disabled={!formikProps.isValid}
                                 >
-                                    Войти
+                                    Зарегистрироваться
                                 </AuthStyled.FormSubmitButton>
                             </AuthStyled.FormActions>
                         </AuthStyled.FormFields>

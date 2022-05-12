@@ -1,7 +1,8 @@
 import {createApi, createEffect, createEvent, createStore} from 'effector';
-import {TLoginData, TRegisterData, TUserInfo} from './types';
+import {NCreateEffectWithAuthToken, TLoginData, TRegisterData, TUserInfo} from './types';
 import {AuthService} from '../../../api/services/AuthService/AuthService';
 import {TLoginResponse, TRegisterResponse, TValidateTokenResponse} from '../../../api/services/AuthService/types';
+import {createEffectWithAuthToken} from './decorators';
 
 export const registerUserEvent = createEvent<TRegisterData>()
 export const loginUserEvent = createEvent<TLoginData>()
@@ -53,16 +54,12 @@ export const registerUserFx = createEffect<TRegisterData | null, TRegisterRespon
     });
 })
 
-export const validateTokenFx = createEffect<string | null, TValidateTokenResponse, Error>(async (accessToken) => {
-
-    if (!accessToken) {
-        throw new Error('Невалидный токен!')
+export const validateTokenFx = createEffectWithAuthToken<undefined, TValidateTokenResponse, Error>(createEffect(
+    async ({token}: NCreateEffectWithAuthToken.TEffectParamParams<undefined>) => {
+        const service = new AuthService();
+        return await service.validateToken({token})
     }
-
-    const service = new AuthService();
-    return await service.validateToken(accessToken)
-
-})
+))
 
 export const $isTokenChecked = createStore<boolean>(false)
     .on(validateTokenFx.finally, () => true);

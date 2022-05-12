@@ -10,8 +10,14 @@ interface IProfileModeButton {
     profileMode: EProfileMode;
 }
 
-const Wrapper = styled.div`
+const Outer = styled.div`
   height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+`
+
+const Wrapper = styled.div`
   width: 100%;
   background: url(${ChatBackgroundImage}), rgba(56, 46, 89, 0.6);
   background-size: cover;
@@ -20,6 +26,16 @@ const Wrapper = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  flex-grow: 1;
+`
+
+const SearchWrapper = styled.div`
+  width: 100%;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  justify-content: flex-start;
+  z-index: 10000000;
 `
 
 const Content = styled.div`
@@ -44,6 +60,7 @@ const ContentWrapper = styled.div`
   justify-content: space-between;
   align-items: center;
   padding-bottom: 27px;
+  margin-bottom: 70px;
 `
 
 const UserName = styled.div<IUserName>`
@@ -117,7 +134,9 @@ const ProfileModeButton = styled.div<IProfileModeButton>`
 `
 
 export const Styled = {
+    Outer,
     Wrapper,
+    SearchWrapper,
     ContentWrapper,
     UserName,
     UserEmail,

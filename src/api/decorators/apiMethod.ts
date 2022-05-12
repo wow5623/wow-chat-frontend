@@ -3,7 +3,7 @@ import {TApiMethod} from '../types';
 import {AxiosResponse} from 'axios';
 
 
-export const apiMethod = (_target: Api, propertyKey: string, descriptor: TypedPropertyDescriptor<TApiMethod>) => {
+export const apiMethod = (_target: Api, propertyKey: string, descriptor: TypedPropertyDescriptor<TApiMethod<any>>) => {
 
     const originalMethod = descriptor.value;
 

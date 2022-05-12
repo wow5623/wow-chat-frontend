@@ -1,3 +1,5 @@
+import {Effect} from 'effector';
+
 export type TRegisterData = {
     email: string,
     password: string,
@@ -10,6 +12,13 @@ export type TLoginData = {
 }
 
 export type TUserInfo = {
+    id: string,
     email: string,
     name: string,
+}
+
+export namespace NCreateEffectWithAuthToken {
+    export type TEffectParam<P, R, E> = Effect<TEffectParamParams<P>, R, E>
+    export type TEffectResult<P, R, E> = Effect<P, R, E>
+    export type TEffectParamParams<P> = {params: P, token: string}
 }

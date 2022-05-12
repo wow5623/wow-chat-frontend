@@ -7,6 +7,7 @@ import {loginUserEvent, loginUserFx} from '../../../../store/models/auth';
 import {useStore} from 'effector-react';
 import * as Yup from 'yup';
 import {useFormItemValidateStatusCallback} from '../../hooks/useFormItemValidateStatus';
+import {Helmet} from 'react-helmet';
 
 const LOGIN_INITIAL_VALUES = {
     email: '',
@@ -25,14 +26,15 @@ export const Login: React.FC = () => {
 
     return (
         <AuthStyled.FormContentWrapper>
+            <Helmet>
+                <title>
+                    Вход
+                </title>
+            </Helmet>
             <Formik
                 initialValues={LOGIN_INITIAL_VALUES}
                 validationSchema={LOGIN_VALIDATION_SCHEMA}
                 onSubmit={(values, actions) => {
-                    console.group('User credentials')
-                        console.log('Email', values.email);
-                        console.log('Password', values.password);
-                    console.groupEnd()
 
                     loginUserEvent({
                         email: values.email,
