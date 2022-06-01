@@ -15,6 +15,7 @@ export type TUserInfo = {
     id: string,
     email: string,
     name: string,
+    isEmailActivated: string,
 }
 
 export namespace NCreateEffectWithAuthToken {

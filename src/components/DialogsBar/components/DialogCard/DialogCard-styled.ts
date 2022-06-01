@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, {css} from 'styled-components';
 import {Colors} from '../../../../theme/colors';
 import {Avatar, Badge} from 'antd';
 
@@ -10,18 +10,30 @@ interface IUnreadMessagesBadge {
     isManyUnreadMessages?: boolean;
 }
 
+const WrapperHover = css`
+    transition: background-color ease .4s;
+    cursor: pointer;
+    &:hover {
+      background: ${Colors.softDark};
+    }
+`
+
 const Wrapper = styled.div<IWrapper>`
     width: 100%;
     background: ${
         ({isDialogAccepted}) =>
                 isDialogAccepted
-                        ? `linear-gradient(45deg, ${Colors.softDark}, ${Colors.dark})`
+                        ? Colors.dark
                         : `linear-gradient(45deg, #999, #888)`
     };
     box-shadow: 10px 0px 30px rgba(0,0,0,0.16);
     display: flex;
     padding: 10px;
     gap: 10px;
+
+    ${({isDialogAccepted}) => {
+      return isDialogAccepted && WrapperHover;
+    }}
 `
 
 export const UserAvatarWrapper = styled.div`
@@ -76,6 +88,8 @@ const LastMessage = styled.div`
     line-clamp: 3;
     width: 400px;
     gap: 10px;
+  
+  
 `
 
 const DialogAcceptMessage = styled.div`

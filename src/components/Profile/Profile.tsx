@@ -32,6 +32,13 @@ export const Profile = () => {
         )
     }
 
+    if (!userInfo?.isEmailActivated) {
+        console.log(userInfo);
+        return (
+            <Navigate to={'/confirm_email'}/>
+        )
+    }
+
     return (
         <ScreenWrapper>
             <Helmet>
@@ -50,10 +57,10 @@ export const Profile = () => {
                                 profileMode === EProfileMode.Info && (
                                     <>
                                         <Styled.UserName fontSize={userNameFontSize}>
-                                            {userInfo.name}
+                                            {userInfo?.name}
                                         </Styled.UserName>
                                         <Styled.UserEmail>
-                                            {userInfo.email}
+                                            {userInfo?.email}
                                         </Styled.UserEmail>
                                     </>
                                 )

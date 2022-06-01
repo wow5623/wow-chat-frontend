@@ -2,28 +2,33 @@ import React from 'react';
 import {Styled} from './DialogMessage-styled';
 import {ESendMessage} from './types';
 import {MessageStatus} from '../MessageStatus/MessageStatus';
-import {EMessageStatus} from '../MessageStatus/types';
+import {useMessageStatus} from './hooks/useMessageStatus';
+import {TMyMessage} from '../../../../store/models/messages/types';
+import {useMessageSendTime} from '../../../../hooks/useMessageSendTime';
 
 interface IDialogMessage {
     send: ESendMessage
-    text: string
+    message: TMyMessage
 }
 
-export const DialogMessage: React.FC<IDialogMessage> = ({send, text}) => {
+export const DialogMessage: React.FC<IDialogMessage> = ({send, message}) => {
+
+    const messageStatus = useMessageStatus(message);
+    const sendTime = useMessageSendTime(message?.createdTime);
 
     return (
         <Styled.Wrapper send={send}>
             <Styled.InnerInfo send={send}>
                 <Styled.MessageText send={send}>
-                    {text}
+                    {message.text}
                 </Styled.MessageText>
-                <Styled.SendTime>
-                    17:03
+                <Styled.SendTime send={send}>
+                    {sendTime}
                 </Styled.SendTime>
             </Styled.InnerInfo>
             {
                 send === ESendMessage.To && (
-                    <MessageStatus messageStatus={EMessageStatus.Sending}/>
+                    <MessageStatus messageStatus={messageStatus}/>
                 )
             }
         </Styled.Wrapper>

@@ -1,4 +1,4 @@
-import {createEffect, createEvent, createStore, restore} from 'effector';
+import {createEffect, createEvent, restore} from 'effector';
 import {EventsService} from '../../../api/services/EventsService/EventsService';
 import {TDialogJointFxProps} from './types';
 

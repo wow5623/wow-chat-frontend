@@ -6,6 +6,7 @@ import {Profile} from '../Profile/Profile';
 import {TransitionGroup, CSSTransition} from 'react-transition-group';
 import './style.css';
 import {NotFound} from '../NotFound/NotFound';
+import {ConfirmEmail} from '../ConfirmEmail/ConfirmEmail';
 
 export const RootNavigator = memo(() => {
 
@@ -18,8 +19,9 @@ export const RootNavigator = memo(() => {
                     <Route path="/" element={
                         <Navigate to={'/auth'}/>
                     }/>
-                    <Route path="/dialog" element={<Dialog />}/>
+                    <Route path="/dialog/:dialogId" element={<Dialog />}/>
                     <Route path="/profile" element={<Profile />}/>
+                    <Route path="/confirm_email" element={<ConfirmEmail />}/>
                     <Route path="/auth">
                         <Route path="/auth" element={
                             <Navigate to={'/auth/login'}/>

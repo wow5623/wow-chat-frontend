@@ -1,12 +1,5 @@
 import {forward, sample} from 'effector';
-import {
-    $service,
-    dialogJoinEvent,
-    dialogJoinFx,
-    serviceConnectEvent,
-    serviceConnectFx
-} from './index';
-import {$currentDialogId} from '../dialogs';
+import {$service, dialogJoinEvent, dialogJoinFx, serviceConnectEvent, serviceConnectFx} from './index';
 
 forward({
     from: serviceConnectEvent,
@@ -21,9 +14,4 @@ sample({
         dialogId,
     }),
     target: dialogJoinFx
-})
-
-forward({
-    from: dialogJoinFx.doneData,
-    to: $currentDialogId,
 })

@@ -5,8 +5,8 @@ import {
     TAcceptDialogDto,
     TAcceptDialogResponse,
     TCreateDialogRequest,
-    TCreateDialogResponse,
-    TGetAllMeDialogsResponse
+    TCreateDialogResponse, TDeleteDialogDto,
+    TGetAllMeDialogsResponse, TGetDialogDto, TGetDialogResponse
 } from './types';
 
 export class DialogsService extends Api {
@@ -16,6 +16,13 @@ export class DialogsService extends Api {
     @serviceMethodWithAuth
     async getAllMeDialogs(props: TServiceRequest): Promise<TGetAllMeDialogsResponse> {
         return this.read<TGetAllMeDialogsResponse>(this.getServiceEndpoint(this.serviceUrl, 'getAllMeDialogs'), {
+            headers: props.headers,
+        })
+    }
+
+    @serviceMethodWithAuth
+    async getDialog(props: TServiceRequest & TGetDialogDto): Promise<TGetDialogResponse> {
+        return this.read<TGetDialogResponse>(this.getServiceEndpoint(this.serviceUrl, 'getDialog', props.dialogId), {
             headers: props.headers,
         })
     }
@@ -39,6 +46,13 @@ export class DialogsService extends Api {
                 dialogId: props.dialogId,
                 companionPublicKey: props.companionPublicKey,
             }
+        })
+    }
+
+    @serviceMethodWithAuth
+    async deleteDialog(props: TServiceRequest & TDeleteDialogDto): Promise<void> {
+        return this.delete(this.getServiceEndpoint(this.serviceUrl, 'deleteDialog', props.dialogId), {
+            headers: props.headers,
         })
     }
 

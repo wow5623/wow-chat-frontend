@@ -8,12 +8,23 @@ const HEADER_Z_INDEX = 1000;
 const Wrapper = styled.header`
     background: ${Colors.dialog.headerBackground};
     padding: 15px;
+    box-shadow: 0 5px 40px rgba(0,0,0,0.85);
+    z-index: ${HEADER_Z_INDEX};
+    display: flex;
+    justify-content: center;
+    position: relative;
+`
+
+const BackButtonWrapper = styled.div`
+    position: absolute;
+    left: 20px;
+`
+
+const UserInfo = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 5px 40px rgba(0,0,0,0.85);
-    z-index: ${HEADER_Z_INDEX};
 `
 
 const UserName = styled(Typography.Title)`
@@ -29,6 +40,8 @@ const UserAvatar = styled(Avatar)`
 export const Styled = {
     Wrapper,
     UserName,
-    UserAvatar
+    UserInfo,
+    UserAvatar,
+    BackButtonWrapper,
 }
 

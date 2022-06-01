@@ -5,7 +5,7 @@ export class SocketApi {
     private readonly baseUrl = 'http://127.0.0.1:7777/';
 
     private manager: Manager;
-    protected socket: Socket;
+    socket: Socket;
 
     constructor() {
         this.manager = new Manager(this.baseUrl);

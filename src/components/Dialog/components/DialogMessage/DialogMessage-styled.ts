@@ -8,6 +8,7 @@ interface IWrapper {
 }
 interface IInnerInfo extends IWrapper {}
 interface IMessageText extends IInnerInfo {}
+interface ISendTime extends IInnerInfo {}
 
 const Wrapper = styled.div<IWrapper>`
   align-self: ${({send}) => getStyleFromSendMessageType({send, styleKey: 'align-self'})};
@@ -24,8 +25,8 @@ const InnerInfo = styled.div<IInnerInfo>`
   padding: 4px;
 `
 
-const SendTime = styled.span`
-   color: ${Colors.dialog.messageSendTime};
+const SendTime = styled.span<ISendTime>`
+   color: ${({send}) => send === ESendMessage.To ? Colors.dialog.messageSendTime : '#ddd'};
    font-style: italic;
    font-size: 12px;
    align-self: end;

@@ -1,1 +1,1 @@
-export type TKeyPair = { publicKeyJwk: JsonWebKey, privateKeyJwk: JsonWebKey }
+export type TKeyPair = { publicKeyJwk: JsonWebKey, privateKeyJwk: JsonWebKey };

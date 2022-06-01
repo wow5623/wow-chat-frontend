@@ -1,6 +1,9 @@
+import {CryptoManagerUtils} from './CryptoManagerUtils';
+import {TKeyPair} from './types';
+
 export class CryptoManager {
 
-    async generateKeyPair(): Promise<{ publicKeyJwk: JsonWebKey, privateKeyJwk: JsonWebKey }> {
+    async generateKeyPair(): Promise<TKeyPair> {
 
         const keyPair = await window.crypto.subtle.generateKey(
             {
@@ -21,10 +24,11 @@ export class CryptoManager {
             keyPair.privateKey
         );
 
+
         return {publicKeyJwk, privateKeyJwk};
     };
 
-    async generateDeriveKey(publicKeyJwk: JsonWebKey, privateKeyJwk: JsonWebKey): Promise<ArrayBuffer> {
+    async generateDeriveKey(publicKeyJwk: JsonWebKey, privateKeyJwk: JsonWebKey): Promise<CryptoKey> {
         const publicKey = await window.crypto.subtle.importKey(
             'jwk',
             publicKeyJwk,
@@ -47,7 +51,7 @@ export class CryptoManager {
             ['deriveKey', 'deriveBits']
         );
 
-        const key = await window.crypto.subtle.deriveKey(
+        return await window.crypto.subtle.deriveKey(
             {name: 'ECDH', public: publicKey},
             privateKey,
             {name: 'AES-GCM', length: 128},
@@ -55,125 +59,77 @@ export class CryptoManager {
             ['encrypt', 'decrypt']
         );
 
-        const keyExported = await window.crypto.subtle.exportKey(
-            'raw',
-            key
-        )
-
-        console.log('DERIVE KEY [jwk]', key);
-        console.log('DERIVE KEY [buffer]', keyExported);
-        console.log('DERIVE KEY [unit8]', new Uint8Array(keyExported));
-
-        return keyExported;
     }
 
-    private listToMatrix(list: number[]) {
-        let matrix = [];
 
-        let fullListLength = list.length;
-
-        while (fullListLength % 16 !== 0) {
-            fullListLength++;
-        }
-
-        for (let i = 0, k = -1; i < fullListLength; i++) {
-            if (i % 4 === 0) {
-                k++;
-                matrix[k] = [];
-            }
-
-            // @ts-ignore
-            matrix[k].push(list.length > i ? list[i] : 0);
-        }
-
-        return matrix;
-    }
-
-    private matrixSeperate(list: number[][]) {
-        let matrix = [];
-
-        for (let i = 0, k = -1; i < list.length; i++) {
-            if (i % 4 === 0) {
-                k++;
-                matrix[k] = [];
-            }
-
-            // @ts-ignore
-            matrix[k].push(list.length > i ? list[i] : 0);
-        }
-
-        return matrix;
-    }
-
-    async encryptText(text: string, derivedKey: ArrayBuffer): Promise<string> {
-
+    async encryptText(text: string, derivedKey: CryptoKey): Promise<string> {
 
         const encodedText = new TextEncoder().encode(text);
-        const encodedDeriveKey = new Uint8Array(derivedKey);
 
-        const encodedTextMatrix = this.listToMatrix(Array.from(encodedText));
-        const encodedDeriveKeyMatrix = this.listToMatrix(Array.from(encodedDeriveKey));
+        const deriveKeyBuffer = await window.crypto.subtle.exportKey(
+            'raw',
+            derivedKey
+        );
 
-        console.log('TEXT MATRIX', encodedTextMatrix);
-        console.log('DKEY MATRIX', encodedDeriveKeyMatrix);
+        const [table] = CryptoManagerUtils.generateSBoxes();
+        const encodedDeriveKey = new Uint8Array(deriveKeyBuffer);
+        const encodedTextMatrix = CryptoManagerUtils.textListToMatrix(Array.from(encodedText));
+        const encodedDeriveKeyMatrix = CryptoManagerUtils.listToMatrix(Array.from(encodedDeriveKey), 4);
+        const encodedTextMatrixGroups = CryptoManagerUtils.makeMatrixGroups(encodedTextMatrix);
+        const roundsKeys = CryptoManagerUtils.keySchedule(encodedDeriveKeyMatrix, table);
 
-        const encodedTextMatrixes = this.matrixSeperate(encodedTextMatrix);
+        let finalEncodedTextMatrixGroups: number[][][] = CryptoManagerUtils.xorMatrices(encodedTextMatrixGroups, encodedDeriveKeyMatrix);
 
-        console.log(encodedTextMatrixes);
+        for (let i = 0; i < 10; i++) {
+            const textAfterSubBytes = CryptoManagerUtils.subBytes(finalEncodedTextMatrixGroups, table);
+            const textAfterShiftRows = CryptoManagerUtils.shiftRows(textAfterSubBytes);
+            const textAfterMixColumns = CryptoManagerUtils.mixColumns(textAfterShiftRows);
+            finalEncodedTextMatrixGroups = CryptoManagerUtils.xorMatrices(textAfterMixColumns, roundsKeys[i]);
+        }
 
+        const uintArray = new Uint8Array([].concat(...finalEncodedTextMatrixGroups.map(matrix => [].concat(...matrix as any))));
 
-        const mixedMatrixes: number[][][] = encodedTextMatrixes.map(matrix => {
-            return matrix.map((col, colIdx) => {
-                // @ts-ignore
-                return col.map((num, numIdx) => {
-                    return num ^ encodedDeriveKeyMatrix[colIdx][numIdx]
-                })
-            })
-        })
-
-        console.log('MIXED MATRIXES', mixedMatrixes);
-
-
-        /*const encryptedData = await window.crypto.subtle.encrypt(
-            {name: 'AES-GCM', iv: new TextEncoder().encode('Initialization Vector')},
-            derivedKey,
-            encodedText
-        );*/
-
-        /*const uintArray = new Uint8Array(encryptedData);
+        const finalText = btoa(String.fromCharCode.apply(null, Array.from(uintArray)));
 
 
-        const string = String.fromCharCode.apply(null, uintArray as unknown as number[]);
-
-
-        const result = btoa(string);*/
-
-
-
-        return text;
+        return finalText;
     }
 
-    async decryptText(text: string, derivedKey: CryptoKey) {
+    async decryptText(text: string, derivedKey: CryptoKey): Promise<string> {
         try {
-           /* const message = JSON.parse(messageJSON);
-            const text = message.base64Data;
-            const initializationVector = new Uint8Array(message.initializationVector).buffer;*/
 
-            const string = atob(text);
-            const uintArray = new Uint8Array(
-                [...string.split('')].map((char) => char.charCodeAt(0))
-            );
-            const algorithm = {
-                name: 'AES-GCM',
-                iv: new TextEncoder().encode("Initialization Vector"),
-            };
-            const decryptedData = await window.crypto.subtle.decrypt(
-                algorithm,
-                derivedKey,
-                uintArray
+            const textBuffer = new Uint8Array(atob(text).split("").map((c) => {
+                return c.charCodeAt(0); }
+            ));
+
+            const deriveKeyBuffer = await window.crypto.subtle.exportKey(
+                'raw',
+                derivedKey
             );
 
-            return new TextDecoder().decode(decryptedData);
+            const [table, tableReverse] = CryptoManagerUtils.generateSBoxes();
+            const decodedDeriveKey = new Uint8Array(deriveKeyBuffer);
+
+            const decodedTextMatrix = CryptoManagerUtils.textListToMatrix(Array.from(textBuffer));
+            const decodedDeriveKeyMatrix = CryptoManagerUtils.listToMatrix(Array.from(decodedDeriveKey), 4);
+            const decodedTextMatrixGroups = CryptoManagerUtils.makeMatrixGroups(decodedTextMatrix);
+
+            const roundsKeys = CryptoManagerUtils.keySchedule(decodedDeriveKeyMatrix, table);
+
+            let finalDecodedTextMatrixGroups: number[][][] = decodedTextMatrixGroups;
+
+            for (let i = 9; i >= 0; i--) {
+                const textAfterXorRoundKeys = CryptoManagerUtils.xorMatrices(finalDecodedTextMatrixGroups, roundsKeys[i]);
+                const textAfterMixColumns = CryptoManagerUtils.mixColumns(textAfterXorRoundKeys);
+                const textAfterShiftRows = CryptoManagerUtils.shiftRowsReverse(textAfterMixColumns);
+                finalDecodedTextMatrixGroups = CryptoManagerUtils.subBytes(textAfterShiftRows, tableReverse);
+            }
+
+            finalDecodedTextMatrixGroups = CryptoManagerUtils.xorMatrices(finalDecodedTextMatrixGroups, decodedDeriveKeyMatrix);
+
+            const uintArray = new Uint8Array([].concat(...finalDecodedTextMatrixGroups.map(matrix => [].concat(...matrix as any))));
+
+            return new TextDecoder().decode(uintArray);
         } catch (e) {
             return `error decrypting message: ${e}`;
         }

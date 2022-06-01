@@ -47,7 +47,7 @@ export class Api {
     }
 
     protected getServiceEndpoint(serviceUrl: string, endpointUrl: string, uriParam?: string) {
-        return `${serviceUrl}${endpointUrl}${uriParam ?? ''}`;
+        return `${serviceUrl}${endpointUrl}${uriParam ? '/' + uriParam : ''}`;
     }
 
 }

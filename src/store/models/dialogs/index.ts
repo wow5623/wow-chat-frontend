@@ -4,8 +4,12 @@ import {
     TAcceptDialogFxResponse,
     TCreateDialogFxResponse,
     TDialog,
+    TGenerateDeriveKeyParams,
+    TGetAllMeDialogsFxProps,
     TMyDialog,
-    TUpdateDialogsKeyPairs
+    TPartner,
+    TUpdateDialogDeriveKey,
+    TUpdateDialogKeyPairs,
 } from './types';
 import {createEffectWithAuthToken} from '../auth/decorators';
 import {NCreateEffectWithAuthToken} from '../auth/types';
@@ -13,9 +17,33 @@ import {DialogsService} from '../../../api/services/DialogsService/DialogsServic
 import {$userInfo} from '../auth';
 import {TUser} from '../users/types';
 import {CryptoManager} from '../../../crypto/CryptoManager';
-import {TDialogsKeyPairs} from '../events/types';
+import {TDialogsMeKeys} from '../events/types';
+import {getDecryptTextPromise} from '../messages/utils/getDecryptTextPromise';
+import * as lodashHelper from 'lodash';
 
 export const $currentDialogId = createStore<string | null>(null);
+
+export const $currentDialog = createStore<TDialog | null>(null);
+export const $partner: Store<TPartner | null> = combine(
+    {dialog: $currentDialog, me: $userInfo},
+    ({dialog, me}) => {
+        if (!dialog || !me) {
+            return null;
+        }
+        if (dialog?.companion?.id === me?.id) {
+            return {
+                user: dialog?.initiator,
+                publicKey: dialog?.initiatorPublicKey,
+            }
+        }
+        else {
+            return {
+                user: dialog?.companion,
+                publicKey: dialog?.companionPublicKey,
+            }
+        }
+    }
+)
 
 export const $listCompanionIdPending = createStore<string[]>([]);
 export const listCompanionIdPendingApi = createApi($listCompanionIdPending, {
@@ -29,21 +57,55 @@ export const listCompanionIdPendingApi = createApi($listCompanionIdPending, {
 
 export const $listInitiatorIdPending = createStore<string[]>([]);
 export const listInitiatorIdPendingApi = createApi($listInitiatorIdPending, {
-    addCompanion: (prevList, newInitiatorId: string) => {
+    addInitiator: (prevList, newInitiatorId: string) => {
         return [...prevList, newInitiatorId]
     },
-    removeCompanion: (prevList, initiatorIdForRemove: string) => {
+    removeInitiator: (prevList, initiatorIdForRemove: string) => {
         return prevList.filter(initiatorId => initiatorId !== initiatorIdForRemove)
     },
 });
 
-export const updateDialogKeyPairsEvent = createEvent<TUpdateDialogsKeyPairs>();
-export const $dialogsKeyPairs = createStore<TDialogsKeyPairs | null>(null)
+export const updateDialogKeyPairsEvent = createEvent<TUpdateDialogKeyPairs>();
+export const updateDialogDeriveKeyEvent = createEvent<TUpdateDialogDeriveKey>();
+export const $dialogsMeKeys = createStore<TDialogsMeKeys | null>(null)
     .on(
         updateDialogKeyPairsEvent,
-        (prevPairs, {newDialogKeyPair, dialogId}) =>
-            ({...prevPairs, [dialogId]: newDialogKeyPair})
+        (prevKeys, {newDialogKeyPair, dialogId}) =>
+            ({
+                ...prevKeys,
+                [dialogId]: {
+                    ...(prevKeys ?? {})[dialogId],
+                    ...newDialogKeyPair
+                }
+            })
     )
+    .on(
+        updateDialogDeriveKeyEvent,
+        (prevKeys, {newDeriveKey, dialogId}) => {
+
+            return {
+                ...prevKeys,
+                [dialogId]: {
+                    ...(prevKeys ?? {})[dialogId],
+                    deriveKey: newDeriveKey
+                }
+            }
+        }
+    )
+
+$dialogsMeKeys.watch(dialogsMeKeys => {
+    console.log(dialogsMeKeys);
+})
+
+export const $currentDeriveKey: Store<CryptoKey | null> = combine(
+    {dialogId: $currentDialogId, keys: $dialogsMeKeys},
+    ({dialogId, keys}) => {
+        if (!dialogId || !keys || !keys[dialogId] || !keys[dialogId]?.deriveKey) {
+            return null
+        }
+        return keys[dialogId]?.deriveKey ?? null;
+    }
+)
 
 export const $dialogs = createStore<TDialog[] | null>(null);
 export const $myDialogs: Store<TMyDialog[] | null> = combine(
@@ -66,7 +128,8 @@ export const $myDialogs: Store<TMyDialog[] | null> = combine(
                 partner,
                 lastMessage: dialog.lastMessage,
                 isDialogAccepted: dialog.isDialogAccepted,
-                isDialogRequest
+                isDialogRequest,
+                createdTime: dialog.createdTime,
             }
         }
     ) ?? null
@@ -87,13 +150,60 @@ export const $visibleMyDialogs: Store<TMyDialog[] | null> = combine(
 );
 
 export const getAllMeDialogsEvent = createEvent();
+export const getCurrentDialogEvent = createEvent<string>();
 export const createDialogEvent = createEvent<string>();
 export const acceptDialogEvent = createEvent<TAcceptDialogFxParams>();
+export const deleteDialogEvent = createEvent<string>();
+export const generateDeriveKeyEvent = createEvent();
 
-export const getAllMeDialogsFx = createEffectWithAuthToken<undefined, TDialog[], Error>(createEffect(
-    async ({token}: NCreateEffectWithAuthToken.TEffectParamParams<undefined>) => {
+export const getAllMeDialogsFx = createEffectWithAuthToken<TGetAllMeDialogsFxProps, TDialog[], Error>(createEffect(
+    async ({token, params: {me, cryptoKeys}}: NCreateEffectWithAuthToken.TEffectParamParams<TGetAllMeDialogsFxProps>) => {
         const service = new DialogsService();
-        return await service.getAllMeDialogs({token})
+
+        const dialogs = await service.getAllMeDialogs({token});
+
+        const cryptoManager = new CryptoManager();
+
+
+        return await Promise.all(
+            dialogs.map(async (dialog) => {
+
+                let dialogKeys = cryptoKeys ? cryptoKeys[dialog.id] : null;
+
+                let deriveKey = dialogKeys?.deriveKey;
+                const privateKey = dialogKeys?.privateKeyJwk;
+                const publicKey = (() => {
+                    if (dialog.companion.id === me?.id) {
+                        return dialog?.initiatorPublicKey
+                    }
+                    else {
+                        return dialog?.companionPublicKey
+                    }
+                })()
+
+                if (lodashHelper.isEmpty(deriveKey) && !!privateKey && !!publicKey) {
+                    deriveKey = await cryptoManager.generateDeriveKey(JSON.parse(publicKey), privateKey);
+                }
+
+                if (!!dialog?.lastMessage && !!deriveKey) {
+                    const decryptedLastMessage = await getDecryptTextPromise(dialog?.lastMessage, deriveKey, cryptoManager);
+                    return {
+                        ...dialog,
+                        lastMessage: decryptedLastMessage
+                    }
+                }
+
+
+                return dialog;
+            })
+        )
+    }
+));
+
+export const getCurrentDialogFx = createEffectWithAuthToken<string, TDialog, Error>(createEffect(
+    async ({token, params: dialogId}: NCreateEffectWithAuthToken.TEffectParamParams<string>) => {
+        const service = new DialogsService();
+        return await service.getDialog({token, dialogId})
     }
 ));
 
@@ -109,7 +219,7 @@ export const createDialogFx = createEffectWithAuthToken<string, TCreateDialogFxR
             {
                 token,
                 companion: companionId,
-                initiatorPublicKey: JSON.stringify(keyPair.publicKeyJwk)
+                initiatorPublicKey: JSON.stringify(keyPair.publicKeyJwk),
             }
         )
 
@@ -144,3 +254,31 @@ export const acceptDialogFx = createEffectWithAuthToken<TAcceptDialogFxParams, T
         }
     }
 ));
+
+export const deleteDialogFx = createEffectWithAuthToken<string, void, Error>(createEffect(
+    async ({token, params: dialogId}: NCreateEffectWithAuthToken.TEffectParamParams<string>) => {
+
+        const dialogsService = new DialogsService();
+
+        await dialogsService.deleteDialog(
+            {
+                token,
+                dialogId,
+            }
+        )
+    }
+));
+
+export const generateDeriveKeyFx = createEffect<TGenerateDeriveKeyParams, CryptoKey, Error>(
+    async ({partnerPublicKey, myPrivateKey}) => {
+
+        const partnerPublicKeyJwk: JsonWebKey = JSON.parse(partnerPublicKey);
+        const myPrivateKeyJwk: JsonWebKey = JSON.parse(myPrivateKey);
+
+        const cryptoManager = new CryptoManager();
+
+        const key = await cryptoManager.generateDeriveKey(partnerPublicKeyJwk, myPrivateKeyJwk);
+
+        return key;
+    }
+);

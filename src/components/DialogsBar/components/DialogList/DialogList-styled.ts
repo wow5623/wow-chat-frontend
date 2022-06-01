@@ -20,6 +20,13 @@ const UnacceptedDialog = styled.div<IUnacceptedDialog>`
     z-index: ${UNACCEPTED_DIALOG_Z_INDEX};
 `
 
+const LoaderWrapper = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+`
+
 const NotFoundMessage = styled.div`
     width: 100%;
     height: 100%;
@@ -39,5 +46,6 @@ const NotFoundMessage = styled.div`
 export const Styled = {
     Wrapper,
     NotFoundMessage,
+    LoaderWrapper,
     UnacceptedDialog,
 }

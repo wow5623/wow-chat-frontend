@@ -1,4 +1,4 @@
-import {combine, createEffect, createEvent, createStore, Store} from 'effector';
+import {combine, createEffect, createEvent, createStore, restore, Store} from 'effector';
 import {TUser, TUserForMe} from './types';
 import {UsersService} from '../../../api/services/UsersService/UsersService';
 import {createEffectWithAuthToken} from '../auth/decorators';
@@ -39,6 +39,18 @@ export const $usersForMe: Store<TUserForMe[] | null> = combine(
         }
     ) ?? null
 )
+
+export const searchUserByNameEvent = createEvent<string>();
+
+export const $userNameFilter = restore(searchUserByNameEvent, '');
+export const $visibleUsersForMe: Store<TUserForMe[] | null> = combine(
+    {users: $usersForMe, filter: $userNameFilter},
+    ({users, filter}) => users?.filter(
+        user => {
+            return user?.name?.includes(filter)
+        }
+    ) ?? null
+);
 
 export const getAllUsersEvent = createEvent()
 

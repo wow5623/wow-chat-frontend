@@ -3,7 +3,7 @@ import {Styled} from './DialogMessageInput-styled';
 import TextArea from 'antd/lib/input/TextArea';
 import {Button} from 'antd';
 import {SendOutlined} from '@ant-design/icons';
-import {addMessageEvent} from '../../../../store/models/messages';
+import {createMessageEvent} from '../../../../store/models/messages';
 import {checkIsMessageEmpty} from './utils/checkIsMessageEmpty';
 
 export const DialogMessageInput: React.FC = () => {
@@ -15,7 +15,7 @@ export const DialogMessageInput: React.FC = () => {
     }
 
     const handleMessageSend = () => {
-        addMessageEvent(messageText);
+        createMessageEvent(messageText);
         setMessageText('');
     }
 

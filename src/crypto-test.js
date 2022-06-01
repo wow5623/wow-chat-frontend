@@ -1,49 +1,88 @@
-const arr = []
+const shiftRows = (matrixGroups) => {
 
-for (let i = 0; i < 16; i++) {
-    arr.push(i);
+    return matrixGroups.map((matrix) => {
+
+        const matrixLength = matrix.length;
+
+        return matrix.map((row, colIndex) => {
+
+            return row.map((num, rowIndex) => {
+
+                const indexSum = colIndex + rowIndex;
+
+                const currentColIndex =
+                    (indexSum > matrixLength - 1)
+                        ? Math.abs(matrixLength - indexSum)
+                        : indexSum;
+
+
+                return matrix[currentColIndex][rowIndex];
+            })
+        })
+    })
 }
 
-console.log(arr)
+const shiftRowsReverse = (matrixGroups) => {
 
-/*const matrix = arr.reduce((acc, currValue, idx) => {
+    return matrixGroups.map((matrix) => {
 
-    const innerArrIdx = acc.length;
+        const matrixLength = matrix.length;
 
-    if (innerArrIdx % 4 === 0 || acc.length === 0) {
-        console.log('ACC1', acc)
-        let newArr = []
-        newArr.push(currValue)
-        return [...acc, newArr]
-    }
-    else {
-        console.log('ACC2', acc)
-        return  acc[innerArrIdx - 1].push(currValue)
-    }
-}, [])*/
+        return matrix.map((row, colIndex) => {
 
-function listToMatrix(list, elementsPerSubArray) {
-    let matrix = [], i, k;
+            return row.map((num, rowIndex) => {
 
-    for (i = 0, k = -1; i < list.length; i++) {
-        if (i % elementsPerSubArray === 0) {
-            k++;
-            matrix[k] = [];
-        }
+                const currentColIndex =
+                    (colIndex + (matrixLength - rowIndex) > matrixLength - 1)
+                        ? Math.abs(matrixLength - (colIndex + (matrixLength - rowIndex)))
+                        : colIndex + (matrixLength - rowIndex);
 
-        matrix[k].push(list[i]);
-    }
 
-    return matrix;
+                return matrix[currentColIndex][rowIndex];
+            })
+        })
+    })
 }
 
-const matrix = listToMatrix(arr, 4)
+const mixColumns = (matrixGroups) => {
+    return matrixGroups.map(matrix => {
+        return matrix.map((row, colIndex) => {
+            if (colIndex % 2 === 1) {
+                return row;
+            }
+            return row.map((num, rowIndex) => {
+                return num ^ matrix[colIndex+1][rowIndex];
+            })
+        })
+    })
+}
+
+const matrix = [[
+    [123, 12, 42, 234],
+    [56, 33, 121, 111],
+    [22, 55, 23, 210],
+    [0, 50, 88, 17],
+]]
 
 
 
+/*
+const resShiftRows = shiftRows([
+    [
+        [123, 12, 42, 234],
+        [56, 33, 121, 111],
+        [22, 55, 23, 210],
+        [0, 50, 88, 17],
+    ]
+])
 
+const resShiftRowsReverse = shiftRowsReverse(resShiftRows)
 
+console.log('Shift Rows', resShiftRows)
+console.log('Shift Rows Reverse', resShiftRowsReverse)*/
 
-
-console.log(matrix)
+/*[123, 33, 23, 17],
+[56, 55, 88, 234],
+[22, 50, 42, 111],
+[0, 12, 121, 210],*/
 

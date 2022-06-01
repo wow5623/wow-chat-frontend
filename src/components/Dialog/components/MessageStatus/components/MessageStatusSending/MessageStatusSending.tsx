@@ -6,7 +6,7 @@ export const MessageStatusSending: React.FC = () => {
     return (
         <MessageStatusSendingStyled>
             {
-                [...Array(12)].map(_item => <div/>)
+                [...Array(12)].map((_item, idx) => <div key={idx}/>)
             }
         </MessageStatusSendingStyled>
     )

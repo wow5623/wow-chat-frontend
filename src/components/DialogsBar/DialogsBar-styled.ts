@@ -16,6 +16,7 @@ export const Wrapper = styled.div`
 export const DialogsSearch = styled.div`
     width: 100%;
     background-color: ${Colors.extraDark};
+    padding: 15px;
 `
 
 export const Styled = {

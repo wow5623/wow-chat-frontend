@@ -12,48 +12,6 @@ import {ThemeProvider} from 'styled-components';
 import {useStyledComponentsTheme} from './hooks/useStyledComponentsTheme';
 import {$theme} from './store/models/theme';
 import {serviceConnectEvent} from './store/models/events';
-import {CryptoManager} from './crypto/CryptoManager';
-
-
-const generateKeys = async () => {
-
-    const text = 'фыврилрилили лиолиолилидоиод лоибои';
-
-    const crypto = new CryptoManager();
-    const keys1 = await crypto.generateKeyPair();
-    const keys2 = await crypto.generateKeyPair();
-
-    const derivedKey = await crypto.generateDeriveKey(keys2.publicKeyJwk, keys1.privateKeyJwk);
-
-    const encryptedText = await crypto.encryptText(text, derivedKey);
-
-    //await generateKeys2(keys2, keys1.publicKeyJwk, encryptedText);
-
-    /*console.group('User-1 keys')
-        console.log('JWK keys', keys1);
-        console.log('Derive key', derivedKey);
-        console.log('encryptedText', encryptedText);
-    console.groupEnd()*/
-}
-
-/*const generateKeys2 = async (keys2: {publicKeyJwk: JsonWebKey, privateKeyJwk: JsonWebKey}, pubKey1: JsonWebKey, encryptedText: string) => {
-
-    const crypto = new CryptoManager();
-
-    const derivedKey = await crypto.generateDeriveKey(pubKey1, keys2.privateKeyJwk);
-
-    const decryptedText = await crypto.decryptText(encryptedText, derivedKey);
-
-
-    /!*console.group('User-2 keys')
-    console.log('JWK keys', keys2);
-    console.log('Derive key', derivedKey);
-    console.log('encryptedText', encryptedText);
-    console.log('decryptedText', decryptedText);
-    console.groupEnd()*!/
-}*/
-
-generateKeys();
 
 
 const App = memo(() => {
