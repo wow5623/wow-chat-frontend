@@ -9,6 +9,10 @@ const Wrapper = styled.div`
     padding: 20px 7px 20px 20px;
     overflow-y: scroll;
     flex-grow: 1;
+  
+    display: flex;
+    flex-direction: column;
+    
 `
 
 const MessagesContainer = styled.div`
